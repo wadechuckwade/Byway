@@ -1,0 +1,1031 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Byway</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:#080c18;color:#e8e8f8;font-family:'DM Sans',sans-serif;min-height:100vh}
+.screen{display:none;min-height:100vh}
+.screen.active{display:flex;flex-direction:column}
+input,button{font-family:inherit}
+input[type=time]{color-scheme:dark}
+
+/* HOME */
+#home{align-items:center;justify-content:center;padding:40px 24px;position:relative;overflow:hidden;text-align:center}
+.bg{position:absolute;inset:0;background:radial-gradient(ellipse at 20% 50%,#0d3a2a30 0%,transparent 60%),radial-gradient(ellipse at 80% 20%,#1a0d3a20 0%,transparent 60%);pointer-events:none}
+.gridlines{position:absolute;inset:0;background-image:repeating-linear-gradient(0deg,transparent,transparent 49px,#ffffff04 50px),repeating-linear-gradient(90deg,transparent,transparent 49px,#ffffff04 50px);pointer-events:none}
+.logo-row{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:8px;position:relative}
+.logo-dot{width:32px;height:32px;border-radius:50%;background:linear-gradient(135deg,#4ade80,#60a5fa);display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-weight:300;font-size:13px;letter-spacing:.25em;text-transform:uppercase;color:#60a5fa}
+h1.hero{font-family:'Playfair Display',serif;font-size:clamp(36px,8vw,60px);font-weight:700;line-height:1.05;margin-bottom:14px;letter-spacing:-.02em;position:relative}
+h1.hero em{color:#4ade80;font-style:italic}
+.hero-sub{color:#808090;font-size:15px;line-height:1.7;margin-bottom:36px;font-weight:300;position:relative}
+.btn-primary{background:linear-gradient(135deg,#4ade80,#22c55e);color:#080c18;border:none;border-radius:14px;padding:17px 44px;font-size:15px;font-weight:600;cursor:pointer;letter-spacing:.04em;box-shadow:0 0 40px #4ade8030;position:relative;transition:transform .2s}
+.btn-primary:hover{transform:translateY(-2px)}
+.data-credit{margin-top:40px;font-size:11px;color:#303040;letter-spacing:.08em;position:relative}
+
+/* CONFIGURE */
+#configure{padding-bottom:60px}
+.topbar{padding:24px 24px 0;display:flex;align-items:center;gap:12px}
+.back-btn{width:36px;height:36px;border-radius:10px;background:#ffffff0a;border:1px solid #ffffff12;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;flex-shrink:0;color:#e8e8f8}
+.topbar-label{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#4ade80}
+.topbar-name{font-family:'Playfair Display',serif;font-size:18px;font-weight:600}
+.form-body{padding:24px 24px 0}
+.mode-toggle{display:flex;gap:8px;margin-bottom:24px;background:#ffffff08;border-radius:12px;padding:4px}
+.mode-btn{flex:1;padding:10px 8px;border-radius:9px;border:none;background:transparent;color:#606070;font-size:12px;cursor:pointer;transition:all .2s}
+.mode-btn.active{background:#ffffff15;color:#e8e8f8;font-weight:600}
+.field-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#606070;display:block;margin-bottom:8px}
+.field-input{width:100%;background:#ffffff0a;border:1px solid #ffffff15;border-radius:10px;padding:13px 16px;color:#e8e8f8;font-size:14px;outline:none;margin-bottom:8px}
+.field-input:focus{border-color:#4ade8040}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px}
+.chip{padding:4px 10px;border-radius:20px;background:#ffffff08;border:1px solid #ffffff12;font-size:11px;color:#909090;cursor:pointer}
+.chip:hover{color:#e8e8f8}
+.dur-row{display:flex;gap:8px;margin-bottom:20px}
+.dur-btn{flex:1;padding:10px 4px;border-radius:9px;border:1px solid #ffffff12;background:#ffffff08;color:#808090;font-family:'Playfair Display',serif;font-size:14px;font-weight:600;cursor:pointer;transition:all .2s;text-align:center}
+.dur-btn.active{border-color:#4ade8060;background:#4ade8015;color:#4ade80}
+.mood-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:24px}
+.mood-btn{padding:11px 14px;border-radius:10px;border:1px solid #ffffff12;background:#ffffff06;color:#808090;font-size:12px;cursor:pointer;text-align:left;transition:all .2s;display:flex;align-items:center;gap:8px}
+.mood-btn.active{border-color:#60a5fa60;background:#60a5fa12;color:#e8e8f8;font-weight:500}
+.error-box{padding:12px 16px;background:#f8717120;border:1px solid #f8717140;border-radius:10px;font-size:12px;color:#f87171;margin-bottom:16px;line-height:1.5;word-break:break-word}
+
+/* LOADING */
+#loading{align-items:center;justify-content:center;padding:40px;text-align:center}
+.spinner-wrap{position:relative;width:72px;height:72px;margin-bottom:28px}
+.spin1{position:absolute;inset:0;border-radius:50%;border:2px solid #4ade8030;animation:spin 3s linear infinite}
+.spin2{position:absolute;inset:6px;border-radius:50%;border:2px solid #60a5fa20;animation:spin 2s linear infinite reverse}
+.spin-icon{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:26px}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+.loading-title{font-family:'Playfair Display',serif;font-size:20px;font-weight:600;margin-bottom:8px}
+.loading-step-text{color:#4ade80;font-size:12px;margin-bottom:28px;letter-spacing:.04em;min-height:18px}
+.steps-list{width:260px;text-align:left}
+.step-row{display:flex;align-items:center;gap:10px;margin-bottom:9px;opacity:.2;transition:opacity .5s}
+.step-row.active{opacity:1}
+.step-row.done{opacity:1}
+.step-dot{width:6px;height:6px;border-radius:50%;background:#ffffff20;flex-shrink:0;transition:background .4s}
+.step-row.done .step-dot{background:#4ade80}
+.step-row.active .step-dot{background:#60a5fa;box-shadow:0 0 8px #60a5fa}
+.step-label{font-size:11px;color:#505060}
+.step-row.active .step-label{color:#e0e0f0}
+
+/* RESULT */
+#result{padding-bottom:60px}
+.result-header{padding:22px 22px 18px;border-bottom:1px solid #ffffff0a}
+.result-toprow{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+.badge{font-size:10px;text-transform:uppercase;letter-spacing:.15em;color:#4ade80;padding:6px 12px;border:1px solid #4ade8030;border-radius:20px}
+.route-name{font-family:'Playfair Display',serif;font-size:28px;font-weight:700;line-height:1.1;margin-bottom:5px}
+.route-tagline{color:#808090;font-size:13px;line-height:1.6;margin-bottom:14px;font-style:italic}
+.meta-row{display:flex;gap:14px;margin-bottom:18px;flex-wrap:wrap}
+.meta-item{display:flex;align-items:center;gap:5px;font-size:12px;color:#a0a0b0}
+.score-card{display:flex;align-items:center;gap:14px;padding:13px 15px;background:#ffffff06;border-radius:13px;border:1px solid #ffffff10}
+.score-ring-wrap{position:relative;flex-shrink:0}
+.score-number{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:'Playfair Display',serif;font-size:15px;font-weight:700;color:#4ade80}
+.score-label{font-family:'Playfair Display',serif;font-size:14px;font-weight:600;margin-bottom:3px}
+.score-sub{font-size:11px;color:#606070;line-height:1.5}
+
+.map-wrap{padding:18px 22px 0}
+.map-box{position:relative;background:linear-gradient(135deg,#0a1628,#0d1f3c,#0a1628);border-radius:16px;overflow:hidden;height:200px;border:1px solid #ffffff18}
+.map-overlay-bg{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 60%,#1a3a2a20 0%,transparent 60%),radial-gradient(ellipse at 70% 30%,#2a1a3a20 0%,transparent 60%);pointer-events:none}
+.map-legend{position:absolute;bottom:10px;left:12px;display:flex;gap:12px}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:9px;color:#a0b0c0;text-transform:uppercase;letter-spacing:.08em}
+.legend-dot{width:7px;height:7px;border-radius:50%}
+
+.poi-strip{padding:0 22px;margin-top:14px;display:flex;gap:8px;overflow-x:auto;padding-bottom:4px}
+.poi-pill{flex-shrink:0;padding:6px 12px;border-radius:20px;border:1px solid #ffffff15;background:#ffffff08;font-size:11px;color:#a0a0b0;white-space:nowrap}
+.poi-pill span{margin-right:4px}
+
+.tabs-wrap{padding:18px 22px 0}
+.tabs{display:flex;gap:4px;background:#ffffff06;border-radius:12px;padding:4px;margin-bottom:18px}
+.tab{flex:1;padding:8px 4px;border-radius:9px;border:none;background:transparent;color:#505060;font-size:10px;cursor:pointer;transition:all .2s}
+.tab.active{background:#ffffff15;color:#e8e8f8;font-weight:600}
+.tab-panel{display:none}
+.tab-panel.active{display:block}
+
+.gbar{cursor:pointer;padding:10px 12px;border-radius:10px;border:1px solid #ffffff12;margin-bottom:6px;transition:all .2s}
+.gbar.active{border-color:#ffffff25;background:#ffffff05}
+.gbar-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.gbar-label{font-size:10px;color:#a0a0b0;display:flex;align-items:center;gap:6px;text-transform:uppercase;letter-spacing:.05em}
+.gbar-val{font-family:'Playfair Display',serif;font-size:15px;font-weight:600}
+.gbar-track{height:3px;background:#ffffff10;border-radius:99px;overflow:hidden}
+.gbar-fill{height:100%;border-radius:99px;transition:width 1s cubic-bezier(.4,0,.2,1)}
+.gdetail{padding:14px;background:#ffffff06;border-radius:12px;border:1px solid #ffffff10;margin-top:6px;display:none}
+.gdetail.open{display:block}
+.gdetail-title{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#606070;margin-bottom:10px}
+.sub-row{margin-bottom:8px}
+.sub-top{display:flex;justify-content:space-between;margin-bottom:3px}
+.sub-name{font-size:11px;color:#a0a0b0;text-transform:capitalize}
+.sub-val{font-family:'Playfair Display',serif;font-size:11px;font-weight:600}
+.sub-track{height:2px;background:#ffffff08;border-radius:99px}
+.sub-fill{height:100%;border-radius:99px;opacity:.7}
+
+.hl-card{cursor:pointer;padding:11px 13px;border-radius:10px;border:1px solid #ffffff15;background:#ffffff08;margin-bottom:8px;transition:all .2s}
+.hl-time-row{display:flex;align-items:center;gap:8px;margin-bottom:3px}
+.hl-time{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em}
+.hl-name{font-family:'Playfair Display',serif;font-size:13px;font-weight:600;color:#e8e8f8}
+.hl-desc{font-size:11px;color:#707080;line-height:1.5;margin-top:5px;display:none}
+.hl-card.open .hl-desc{display:block}
+
+.sched-row{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid #ffffff08}
+.sched-time{font-family:'Playfair Display',serif;font-size:12px;font-weight:600;min-width:40px}
+.sched-event{font-size:13px;color:#e0e0f0;font-weight:500}
+.sched-note{font-size:11px;color:#606070;margin-top:2px}
+
+.alt-card{padding:15px;background:#ffffff06;border-radius:12px;border:1px solid #ffffff10;margin-bottom:10px;cursor:pointer;transition:all .2s}
+.alt-card:hover{border-color:#ffffff20}
+.alt-card.selected{border-color:#4ade8050;background:#4ade8008}
+.alt-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;gap:8px}
+.alt-name{font-family:'Playfair Display',serif;font-size:14px;font-weight:600}
+.alt-badge{font-size:10px;color:#60a5fa;padding:3px 8px;background:#60a5fa15;border-radius:20px;border:1px solid #60a5fa30;white-space:nowrap}
+.alt-tagline{font-size:12px;color:#808090;font-style:italic;margin-bottom:6px}
+.alt-stats{display:flex;gap:12px;flex-wrap:wrap}
+.alt-stat{font-size:11px;color:#505060}
+
+.export-card{padding:15px;background:#ffffff06;border-radius:12px;border:1px solid #ffffff10;margin-top:12px}
+.export-label{font-size:10px;text-transform:uppercase;letter-spacing:.12em;color:#606070;margin-bottom:10px}
+.export-btns{display:flex;flex-wrap:wrap;gap:8px}
+.export-btn{padding:8px 13px;border-radius:8px;background:#ffffff08;border:1px solid #ffffff15;color:#a0a0b0;font-size:11px;cursor:pointer;font-family:inherit;transition:all .2s}
+.export-btn:hover{color:#e8e8f8;border-color:#ffffff30}
+.new-route-btn{width:100%;padding:14px;background:transparent;border:1px solid #4ade8040;border-radius:14px;color:#4ade80;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-top:22px;transition:all .2s}
+.new-route-btn:hover{background:#4ade8010}
+</style>
+</head>
+<body>
+
+<!-- HOME -->
+<div id="home" class="screen active">
+  <div class="bg"></div><div class="gridlines"></div>
+  <div class="logo-row"><div class="logo-dot">⌖</div><span class="logo-text">Byway</span></div>
+  <h1 class="hero">The most<br/><em>enjoyable</em> drive<br/>you could take.</h1>
+  <p class="hero-sub">Not the fastest. Not the shortest.<br/>The one worth remembering.</p>
+  <button class="btn-primary" onclick="show('configure')">Find my route →</button>
+  <p class="data-credit">POWERED BY GEOAPIFY · OSRM · OPENSTREETMAP</p>
+</div>
+
+<!-- CONFIGURE -->
+<div id="configure" class="screen">
+  <div class="topbar">
+    <button class="back-btn" onclick="show('home')">←</button>
+    <div><div class="topbar-label">Byway</div><div class="topbar-name">Plan your route</div></div>
+  </div>
+  <div class="form-body">
+    <div class="mode-toggle">
+      <button class="mode-btn active" id="btn-adv" onclick="setMode('adventure')">🗺 Adventure Mode</button>
+      <button class="mode-btn" id="btn-dest" onclick="setMode('destination')">📍 Destination Mode</button>
+    </div>
+
+    <label class="field-label" id="origin-lbl">Starting Point</label>
+    <input class="field-input" id="origin" type="text" placeholder="e.g. Edinburgh"/>
+    <div class="chips" id="chips"></div>
+
+    <div id="dest-wrap" style="display:none">
+      <label class="field-label">To</label>
+      <input class="field-input" id="dest" type="text" placeholder="e.g. Inverness"/>
+    </div>
+
+    <div id="dur-wrap">
+      <label class="field-label">Available Time — <span id="dur-lbl" style="color:#4ade80;font-family:'Playfair Display',serif;font-size:13px">3 hours</span></label>
+      <div class="dur-row" id="dur-row"></div>
+    </div>
+
+    <label class="field-label" style="margin-top:16px">Departure Time</label>
+    <input class="field-input" id="dep-time" type="time" value="09:00" style="width:auto;margin-bottom:20px"/>
+
+    <label class="field-label">Route Mood</label>
+    <div class="mood-grid" id="mood-grid"></div>
+
+    <div class="error-box" id="err" style="display:none"></div>
+    <button class="btn-primary" onclick="handleGenerate()" style="width:100%">Generate Route →</button>
+  </div>
+</div>
+
+<!-- LOADING -->
+<div id="loading" class="screen">
+  <div class="spinner-wrap"><div class="spin1"></div><div class="spin2"></div><div class="spin-icon">⌖</div></div>
+  <div class="loading-title">Finding your route</div>
+  <div class="loading-step-text" id="step-text"></div>
+  <div class="steps-list" id="steps-list"></div>
+</div>
+
+<!-- RESULT -->
+<div id="result" class="screen">
+  <div class="result-header">
+    <div class="result-toprow">
+      <button class="back-btn" onclick="show('configure')">←</button>
+      <div class="badge" id="r-badge"></div>
+    </div>
+    <div class="route-name" id="r-name"></div>
+    <div class="route-tagline" id="r-tagline"></div>
+    <div class="meta-row">
+      <div class="meta-item">🕐 <span id="r-dur"></span></div>
+      <div class="meta-item">📍 <span id="r-dist"></span></div>
+      <div class="meta-item">⭐ <span id="r-score"></span>/100</div>
+      <div class="meta-item">🛣 <span id="r-extra"></span></div>
+    </div>
+    <div class="score-card">
+      <div class="score-ring-wrap">
+        <svg width="64" height="64" viewBox="0 0 64 64" style="transform:rotate(-90deg);display:block">
+          <circle cx="32" cy="32" r="27" fill="none" stroke="#ffffff10" stroke-width="4"/>
+          <circle id="score-arc" cx="32" cy="32" r="27" fill="none" stroke="#4ade80" stroke-width="4" stroke-linecap="round" stroke-dasharray="0 170"/>
+        </svg>
+        <div class="score-number" id="score-num">0</div>
+      </div>
+      <div><div class="score-label">Experience Score</div><div class="score-sub" id="score-sub"></div></div>
+    </div>
+  </div>
+
+  <div class="map-wrap">
+    <div class="map-box">
+      <div class="map-overlay-bg"></div>
+      <svg id="map-svg" width="100%" height="100%" viewBox="0 0 800 400" preserveAspectRatio="none">
+        <defs>
+          <filter id="glow"><feGaussianBlur stdDeviation="3" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+          <linearGradient id="rg" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="#4ade80"/>
+            <stop offset="50%" stop-color="#60a5fa"/>
+            <stop offset="100%" stop-color="#f472b6"/>
+          </linearGradient>
+        </defs>
+        <path id="r-shadow" fill="none" stroke="#000" stroke-width="6" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+        <path id="r-path" fill="none" stroke="url(#rg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" filter="url(#glow)"/>
+        <g id="r-pts"></g>
+        <circle id="dot-s" r="8" fill="#4ade80" opacity="0.9"/>
+        <circle id="dot-e" r="8" fill="#f472b6" opacity="0.9"/>
+      </svg>
+      <div class="map-legend">
+        <div class="legend-item"><div class="legend-dot" style="background:#4ade80"></div>Start</div>
+        <div class="legend-item"><div class="legend-dot" style="background:#f472b6"></div>End</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- POI strip -->
+  <div class="poi-strip" id="poi-strip"></div>
+
+  <div class="tabs-wrap">
+    <div class="tabs">
+      <button class="tab active" onclick="setTab('genome')">Route Genome</button>
+      <button class="tab" onclick="setTab('highlights')">Highlights</button>
+      <button class="tab" onclick="setTab('schedule')">Schedule</button>
+      <button class="tab" onclick="setTab('alts')">Alternatives</button>
+    </div>
+
+    <div id="tab-genome" class="tab-panel active">
+      <div id="genome-bars"></div>
+      <div id="gdetail" class="gdetail"></div>
+    </div>
+    <div id="tab-highlights" class="tab-panel"><div id="hl-list"></div></div>
+    <div id="tab-schedule" class="tab-panel"><div id="sched-list"></div></div>
+    <div id="tab-alts" class="tab-panel">
+      <div id="alts-list"></div>
+      <div class="export-card">
+        <div class="export-label">Export &amp; Navigate</div>
+        <div class="export-btns">
+          <button class="export-btn" onclick="exportGoogle()">Open in Google Maps</button>
+          <button class="export-btn" onclick="exportApple()">Open in Apple Maps</button>
+          <button class="export-btn" onclick="exportGPX()">Download GPX</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div style="padding:0 22px"><button class="new-route-btn" onclick="show('configure')">↺ Plan another route</button></div>
+</div>
+
+<script>
+// ─── CONSTANTS ────────────────────────────────────────────────────────────────
+const GEO_KEY = '226000c0710244c891267056dc9a528b';
+
+const MOODS = [
+  {id:'scenic',      label:'Most Scenic',       icon:'🏔', weights:{scenery:2.0,photography:1.5,relaxation:1.2}},
+  {id:'relaxed',     label:'Relaxed & Easy',    icon:'🌿', weights:{relaxation:2.0,scenery:1.3,foodDrink:1.2}},
+  {id:'adventurous', label:'Adventurous',       icon:'⚡', weights:{adventure:2.0,drivingEnjoyment:1.8,discovery:1.3}},
+  {id:'cultural',    label:'Cultural Discovery',icon:'🏛', weights:{historyCulture:2.0,discovery:1.8,foodDrink:1.2}},
+  {id:'photography', label:'Photography Run',   icon:'📷', weights:{photography:2.0,scenery:1.8,discovery:1.3}},
+  {id:'foodie',      label:'Foodie Journey',    icon:'🍽', weights:{foodDrink:2.0,relaxation:1.3,discovery:1.2}},
+];
+
+const GENOME_META = [
+  {key:'scenery',          label:'Scenery',      icon:'🏔',color:'#4ade80'},
+  {key:'drivingEnjoyment', label:'Driving',      icon:'🛣',color:'#60a5fa'},
+  {key:'relaxation',       label:'Solitude',     icon:'🌿',color:'#a78bfa'},
+  {key:'foodDrink',        label:'Food & Drink', icon:'☕',color:'#fb923c'},
+  {key:'historyCulture',   label:'Culture',      icon:'🏛',color:'#f472b6'},
+  {key:'photography',      label:'Photography',  icon:'📷',color:'#facc15'},
+  {key:'adventure',        label:'Adventure',    icon:'⚡',color:'#f87171'},
+  {key:'discovery',        label:'Discovery',    icon:'🔭',color:'#34d399'},
+];
+
+const STEPS = [
+  'Geocoding locations…',
+  'Scanning region for scenic places…',
+  'Building route candidates…',
+  'Scoring Route Genome…',
+  'Selecting best route…',
+];
+
+const LOCS = ['Edinburgh','Lake District','Cotswolds','Scottish Highlands','Peak District','Yorkshire Dales','Snowdonia','Cornwall','Pembrokeshire','Exmoor'];
+
+// POI categories for Geoapify — maps to genome dimensions
+const POI_CATEGORIES = 'natural.mountain,natural.water,tourism.attraction,heritage,catering.pub,catering.cafe,catering.restaurant,leisure.park,natural.forest';
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+const S = {mode:'adventure', duration:3, mood:'scenic', route:null, allRoutes:[], activeGenome:null};
+
+// ─── INIT ──────────────────────────────────────────────────────────────────────
+document.addEventListener('DOMContentLoaded', () => {
+  // Chips
+  const el = document.getElementById('chips');
+  LOCS.forEach(l => {
+    const c = document.createElement('span');
+    c.className='chip'; c.textContent=l;
+    c.onclick = () => document.getElementById('origin').value = l;
+    el.appendChild(c);
+  });
+  // Duration
+  const dr = document.getElementById('dur-row');
+  [1,2,3,4,6,8].forEach(h => {
+    const b = document.createElement('button');
+    b.className='dur-btn'+(h===3?' active':''); b.textContent=h+'h';
+    b.onclick = () => {
+      S.duration=h; document.getElementById('dur-lbl').textContent=h+' hours';
+      dr.querySelectorAll('.dur-btn').forEach(x=>x.classList.remove('active'));
+      b.classList.add('active');
+    };
+    dr.appendChild(b);
+  });
+  // Moods
+  const mg = document.getElementById('mood-grid');
+  MOODS.forEach(m => {
+    const b = document.createElement('button');
+    b.className='mood-btn'+(m.id==='scenic'?' active':''); b.id='mood-'+m.id;
+    b.innerHTML=`<span>${m.icon}</span><span>${m.label}</span>`;
+    b.onclick = () => {
+      S.mood=m.id; mg.querySelectorAll('.mood-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active');
+    };
+    mg.appendChild(b);
+  });
+  // Steps
+  const sl = document.getElementById('steps-list');
+  STEPS.forEach((s,i) => {
+    const r=document.createElement('div'); r.className='step-row'; r.id='step-'+i;
+    r.innerHTML=`<div class="step-dot"></div><span class="step-label">${s}</span>`;
+    sl.appendChild(r);
+  });
+});
+
+// ─── NAV ──────────────────────────────────────────────────────────────────────
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  window.scrollTo(0,0);
+}
+function setMode(m) {
+  S.mode=m;
+  document.getElementById('btn-adv').classList.toggle('active',m==='adventure');
+  document.getElementById('btn-dest').classList.toggle('active',m==='destination');
+  document.getElementById('dest-wrap').style.display=m==='destination'?'block':'none';
+  document.getElementById('dur-wrap').style.display=m==='adventure'?'block':'none';
+  document.getElementById('origin-lbl').textContent=m==='adventure'?'Starting Point':'From';
+}
+function setTab(t) {
+  document.querySelectorAll('.tab').forEach((el,i)=>{
+    el.classList.toggle('active',['genome','highlights','schedule','alts'][i]===t);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+t).classList.add('active');
+}
+function advStep(n) {
+  if(n>0){const p=document.getElementById('step-'+(n-1));if(p){p.classList.remove('active');p.classList.add('done');}}
+  const c=document.getElementById('step-'+n);
+  if(c) c.classList.add('active');
+  document.getElementById('step-text').textContent=STEPS[n]||'';
+}
+
+// ─── APIs ─────────────────────────────────────────────────────────────────────
+async function geocode(place) {
+  const r = await fetch(`https://api.geoapify.com/v1/geocode/search?text=${encodeURIComponent(place+', UK')}&format=json&limit=1&apiKey=${GEO_KEY}`);
+  if(!r.ok) throw new Error('Geocoding HTTP '+r.status);
+  const d = await r.json();
+  if(!d.results?.length) throw new Error(`Place not found: "${place}"`);
+  const res = d.results[0];
+  return {lat:res.lat, lon:res.lon, name:res.city||res.county||res.name||place};
+}
+
+async function fetchRegionPOIs(minLat, minLon, maxLat, maxLon) {
+  // Fetch up to 200 POIs across the full region in one call
+  const centerLat = (minLat+maxLat)/2;
+  const centerLon = (minLon+maxLon)/2;
+  // Use a circle radius that covers the bounding box
+  const radiusM = Math.round(Math.max(
+    haversine(minLat,minLon,maxLat,maxLon),
+    haversine(minLat,maxLon,maxLat,minLon)
+  ) * 600); // km to m with buffer
+
+  const url = `https://api.geoapify.com/v2/places?categories=${POI_CATEGORIES}&filter=circle:${centerLon},${centerLat},${radiusM}&limit=200&apiKey=${GEO_KEY}`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('POI fetch HTTP '+r.status);
+  const d = await r.json();
+  return d.features||[];
+}
+
+async function osrmRoute(waypoints) {
+  const coords = waypoints.map(([lat,lon])=>lon+','+lat).join(';');
+  const url = `https://router.project-osrm.org/route/v1/driving/${coords}?overview=full&geometries=geojson&steps=true`;
+  const r = await fetch(url);
+  if(!r.ok) throw new Error('OSRM HTTP '+r.status);
+  const d = await r.json();
+  if(d.code!=='Ok'||!d.routes?.length) throw new Error('No route found');
+  return d.routes[0];
+}
+
+// ─── GEOMETRY UTILS ───────────────────────────────────────────────────────────
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371, dLat=(lat2-lat1)*Math.PI/180, dLon=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dLat/2)**2+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function bearing(lat1,lon1,lat2,lon2) {
+  const dLon=(lon2-lon1)*Math.PI/180;
+  const y=Math.sin(dLon)*Math.cos(lat2*Math.PI/180);
+  const x=Math.cos(lat1*Math.PI/180)*Math.sin(lat2*Math.PI/180)-Math.sin(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.cos(dLon);
+  return Math.atan2(y,x)*180/Math.PI;
+}
+
+function scoreCurviness(coords) {
+  // Count significant bearing changes (>15 degrees) per 10km
+  let changes=0;
+  for(let i=1;i<coords.length-1;i++){
+    const b1=bearing(coords[i-1][1],coords[i-1][0],coords[i][1],coords[i][0]);
+    const b2=bearing(coords[i][1],coords[i][0],coords[i+1][1],coords[i+1][0]);
+    let diff=Math.abs(b2-b1); if(diff>180) diff=360-diff;
+    if(diff>15) changes++;
+  }
+  const distKm=haversine(coords[0][1],coords[0][0],coords[coords.length-1][1],coords[coords.length-1][0]);
+  const per10km=(changes/(Math.max(distKm,1)/10));
+  return Math.min(100, Math.round(per10km*4));
+}
+
+function scoreRoadTypes(steps) {
+  // Score based on road classification from OSRM step names/refs
+  // Unclassified/tertiary/secondary = scenic, primary/motorway = not
+  let scenicCount=0, totalCount=0;
+  for(const step of steps){
+    if(!step.distance||step.distance<100) continue;
+    totalCount++;
+    const name=(step.name||'').toLowerCase();
+    const ref=(step.ref||'').toLowerCase();
+    // B-roads and unclassified tend to be scenic
+    if(ref.match(/^b\d+/)||name===''||step.distance<500) scenicCount++;
+  }
+  return totalCount>0 ? Math.min(100,Math.round((scenicCount/totalCount)*100)) : 50;
+}
+
+function poiDensityAlongRoute(coords, pois) {
+  // Count POIs within 3km of any route point (sampled every 10 points)
+  const sample = coords.filter((_,i)=>i%10===0);
+  const nearby = new Set();
+  for(const poi of pois){
+    const pLat=poi.properties?.lat??poi.geometry?.coordinates?.[1];
+    const pLon=poi.properties?.lon??poi.geometry?.coordinates?.[0];
+    if(!pLat||!pLon) continue;
+    for(const pt of sample){
+      if(haversine(pt[1],pt[0],pLat,pLon)<3){
+        nearby.add(poi.properties?.name||'unnamed');
+        break;
+      }
+    }
+  }
+  return nearby.size;
+}
+
+// ─── HEATMAP + PATHFINDING ────────────────────────────────────────────────────
+function buildHeatmap(pois, minLat,minLon,maxLat,maxLon, W=6,H=6) {
+  const cw=(maxLon-minLon)/W, ch=(maxLat-minLat)/H;
+  const grid=Array.from({length:W*H},(_,i)=>({
+    row:Math.floor(i/W), col:i%W,
+    centerLat:minLat+(Math.floor(i/W)+0.5)*ch,
+    centerLon:minLon+((i%W)+0.5)*cw,
+    score:0, pois:[], peaks:0, water:0, castles:0, food:0, views:0
+  }));
+
+  for(const f of pois){
+    const lat=f.geometry?.coordinates?.[1]??f.properties?.lat;
+    const lon=f.geometry?.coordinates?.[0]??f.properties?.lon;
+    if(lat==null||lon==null) continue;
+    const col=Math.min(W-1,Math.max(0,Math.floor((lon-minLon)/cw)));
+    const row=Math.min(H-1,Math.max(0,Math.floor((lat-minLat)/ch)));
+    const c=grid[row*W+col];
+    const cats=(f.properties?.categories||[]).join(' ');
+    const name=f.properties?.name;
+
+    if(cats.includes('natural.mountain')){c.peaks++;if(name) c.pois.push({name,type:'peak',lat,lon,cats});}
+    else if(cats.includes('natural.water')){c.water++;if(name) c.pois.push({name,type:'water',lat,lon,cats});}
+    else if(cats.includes('heritage')){c.castles++;if(name) c.pois.push({name,type:'heritage',lat,lon,cats});}
+    else if(cats.includes('catering')){c.food++;if(name) c.pois.push({name,type:'food',lat,lon,cats});}
+    else if(cats.includes('tourism')){c.views++;if(name) c.pois.push({name,type:'viewpoint',lat,lon,cats});}
+  }
+
+  // Base score from POI density + type weights
+  for(const c of grid){
+    c.score=Math.min(100,
+      c.peaks*9 + c.water*8 + c.castles*11 + c.views*10 + c.food*4
+    );
+  }
+  return grid;
+}
+
+function applyMoodWeights(grid, mood) {
+  const m=MOODS.find(x=>x.id===mood);
+  if(!m) return grid;
+  const w=m.weights;
+  return grid.map(c=>{
+    let boost=0;
+    if(w.scenery)        boost+=c.peaks*2*((w.scenery||1)-1);
+    if(w.historyCulture) boost+=c.castles*3*((w.historyCulture||1)-1);
+    if(w.foodDrink)      boost+=c.food*2*((w.foodDrink||1)-1);
+    if(w.adventure)      boost+=c.peaks*2*((w.adventure||1)-1);
+    return {...c, score:Math.min(100,c.score+boost)};
+  });
+}
+
+function findBestWaypoints(grid, originGeo, destGeo, W, H, maxDetourFactor) {
+  // Find the path through grid cells from origin to dest that maximises score
+  // while not detouring more than maxDetourFactor * direct distance
+  const directDist = haversine(originGeo.lat,originGeo.lon,destGeo.lat,destGeo.lon);
+
+  // Score cells by: their own score weighted by how "on the way" they are
+  const candidates = grid
+    .filter(c=>c.score>0 && c.pois.length>0)
+    .map(c=>{
+      const distViaCell = haversine(originGeo.lat,originGeo.lon,c.centerLat,c.centerLon)
+                        + haversine(c.centerLat,c.centerLon,destGeo.lat,destGeo.lon);
+      const detourFactor = distViaCell/Math.max(directDist,1);
+      return {...c, distViaCell, detourFactor};
+    })
+    .filter(c=>c.detourFactor<=maxDetourFactor)
+    .sort((a,b)=>b.score-a.score);
+
+  // Pick top 2-3 non-overlapping waypoint cells
+  const chosen=[];
+  for(const c of candidates){
+    if(chosen.length>=3) break;
+    // Don't pick adjacent cells to already chosen ones
+    const tooClose=chosen.some(x=>Math.abs(x.row-c.row)<=1&&Math.abs(x.col-c.col)<=1);
+    if(!tooClose) chosen.push(c);
+  }
+
+  // Sort chosen by geography (from origin to dest)
+  chosen.sort((a,b)=>{
+    const dA=haversine(originGeo.lat,originGeo.lon,a.centerLat,a.centerLon);
+    const dB=haversine(originGeo.lat,originGeo.lon,b.centerLat,b.centerLon);
+    return dA-dB;
+  });
+
+  // Extract best named POI from each chosen cell as actual waypoint
+  return chosen.map(c=>{
+    const best=c.pois[0];
+    return {lat:best?.lat??c.centerLat, lon:best?.lon??c.centerLon, name:best?.name||'Scenic Point', type:best?.type||'viewpoint', cell:c};
+  });
+}
+
+function buildAdventureWaypoints(originGeo, mood, durationH, W=6, H=6) {
+  // For adventure mode: create a loop using compass bearings tuned by mood
+  const moodBearings = {
+    scenic:      [[-15, 0.4],[15, 0.7],[0, 1.0]],
+    adventurous: [[-30, 0.4],[30, 0.6],[0, 1.0]],
+    relaxed:     [[-10, 0.35],[10, 0.65],[0, 1.0]],
+    cultural:    [[20, 0.4],[-10, 0.7],[0, 1.0]],
+    photography: [[-25, 0.4],[20, 0.7],[0, 1.0]],
+    foodie:      [[10, 0.3],[-5, 0.6],[0, 1.0]],
+  };
+  const bearingsAndDist = moodBearings[mood]||moodBearings.scenic;
+  // Approx radius based on duration (avg 60km/h on scenic roads)
+  const radiusKm = (durationH * 40) / 2;
+  return bearingsAndDist.slice(0,-1).map(([deg,frac])=>{
+    const rad = (deg * Math.PI/180);
+    const dist = radiusKm * frac;
+    const lat = originGeo.lat + (dist/111)*Math.cos(rad);
+    const lon = originGeo.lon + (dist/(111*Math.cos(originGeo.lat*Math.PI/180)))*Math.sin(rad);
+    return {lat, lon, name:'Scenic Point', type:'waypoint'};
+  });
+}
+
+// ─── GENOME CALCULATOR ────────────────────────────────────────────────────────
+function calcGenome(osrmData, nearbyPOIs, mood) {
+  const coords = osrmData.geometry.coordinates;
+  const steps = osrmData.legs?.[0]?.steps||[];
+  const distKm = osrmData.distance/1000;
+
+  // Real measurements
+  const curviness   = scoreCurviness(coords);
+  const roadScore   = scoreRoadTypes(steps);
+  const poiCount    = nearbyPOIs.length;
+
+  const peaks   = nearbyPOIs.filter(f=>(f.properties?.categories||[]).join(' ').includes('natural.mountain')).length;
+  const water   = nearbyPOIs.filter(f=>(f.properties?.categories||[]).join(' ').includes('natural.water')).length;
+  const heritage= nearbyPOIs.filter(f=>(f.properties?.categories||[]).join(' ').includes('heritage')).length;
+  const food    = nearbyPOIs.filter(f=>(f.properties?.categories||[]).join(' ').includes('catering')).length;
+  const parks   = nearbyPOIs.filter(f=>(f.properties?.categories||[]).join(' ').includes('leisure')).length;
+
+  const cap=(v,max)=>Math.min(100,Math.round((v/Math.max(max,1))*100));
+
+  const base = {
+    scenery:          Math.min(100, cap(peaks,8)*0.4 + cap(water,6)*0.3 + cap(parks,4)*0.15 + roadScore*0.15),
+    drivingEnjoyment: Math.min(100, curviness*0.5 + roadScore*0.3 + Math.min(30,distKm/3)*0.2/30*100*0.2),
+    relaxation:       Math.min(100, roadScore*0.4 + Math.max(0,100-food*8)*0.4 + cap(parks,5)*0.2),
+    foodDrink:        Math.min(100, cap(food,10)*0.8 + 20),
+    historyCulture:   Math.min(100, cap(heritage,6)*0.85 + 15),
+    photography:      Math.min(100, cap(peaks,6)*0.35 + cap(water,5)*0.3 + curviness*0.2 + roadScore*0.15),
+    adventure:        Math.min(100, curviness*0.45 + cap(peaks,5)*0.35 + (distKm>80?20:distKm>50?10:0)*0.2),
+    discovery:        Math.min(100, cap(heritage,5)*0.3 + cap(peaks,5)*0.25 + cap(water,4)*0.25 + cap(poiCount,20)*0.2),
+  };
+
+  // Apply mood weights from MOODS config
+  const m = MOODS.find(x=>x.id===mood);
+  const genome = {};
+  for(const k of Object.keys(base)){
+    const w = m?.weights?.[k]||1;
+    genome[k] = Math.min(100, Math.round(base[k]*w));
+  }
+
+  const details = {
+    scenery:          {peaks:cap(peaks,8), water:cap(water,6), parks:cap(parks,4), 'road quality':roadScore},
+    drivingEnjoyment: {curviness, 'road type':roadScore, 'route length':Math.min(100,Math.round(distKm/1.5))},
+    relaxation:       {'road type':roadScore, 'away from towns':Math.max(0,100-food*8), 'green space':cap(parks,5)},
+  };
+
+  return {genome, details, raw:{curviness,roadScore,peaks,water,heritage,food,poiCount,distKm}};
+}
+
+// ─── NAMING ───────────────────────────────────────────────────────────────────
+function nameRoute(raw, genome, originName, destName) {
+  const {peaks,water,heritage,food,curviness} = raw;
+  if(peaks>4&&genome.adventure>65)            return {name:'High Ground Circuit',    tagline:'A route that climbs into open moorland and earns every one of its views.'};
+  if(water>3&&peaks>2)                        return {name:'Mountain & Water Route', tagline:'Threading between summits and lakes through some of the finest upland scenery in Britain.'};
+  if(heritage>3&&genome.historyCulture>65)    return {name:'Castle Country Run',     tagline:'Winding lanes connecting centuries of history across rolling countryside.'};
+  if(water>4)                                 return {name:'Lakeside Wanderer',       tagline:'A gentle drift along still waters and quiet valley roads.'};
+  if(curviness>65&&genome.drivingEnjoyment>70)return {name:'The Winding Way',        tagline:'Every bend reveals something new on this driver\'s road through the countryside.'};
+  if(food>5&&genome.foodDrink>70)             return {name:'The Foodie Circuit',      tagline:'A drive built around the finest local stops — coffee, lunch, and everything between.'};
+  if(genome.relaxation>75)                    return {name:'The Quiet Way',           tagline:'Empty lanes, soft hills, and absolutely nowhere to be.'};
+  if(destName)                                return {name:originName+' to '+destName+' Scenic', tagline:'The most enjoyable road between two places — via the route that\'s actually worth taking.'};
+  return {name:originName+' Explorer',        tagline:'A hand-scored scenic route through the finest countryside near '+originName+'.'};
+}
+
+// ─── HIGHLIGHTS ───────────────────────────────────────────────────────────────
+function buildHighlights(nearbyPOIs, waypoints, depTime, durationH) {
+  const dep = parseInt(depTime)+parseInt(depTime.split(':')[1])/60;
+  const fmt = h => { const hr=Math.floor(h),mn=Math.round((h%1)*60); return String(hr).padStart(2,'0')+':'+String(mn).padStart(2,'0'); };
+
+  const hl = [];
+  const used = new Set();
+
+  const TYPE_MAP = [
+    {match:'natural.mountain', type:'viewpoint', desc:f=>`${f.properties?.name} — ${f.properties?.address_line2||'A high point with sweeping views across the surrounding landscape.'}`},
+    {match:'catering.pub',     type:'food',      desc:f=>`${f.properties?.name} — ${f.properties?.address_line2||'A traditional country pub worth stopping at.'}`},
+    {match:'catering.cafe',    type:'food',      desc:f=>`${f.properties?.name} — ${f.properties?.address_line2||'Artisan coffee and homemade food.'}`},
+    {match:'heritage',         type:'culture',   desc:f=>`${f.properties?.name} — ${f.properties?.address_line2||'A historic site that rewards a stop.'}`},
+    {match:'natural.water',    type:'photography',desc:f=>`${f.properties?.name} — ${f.properties?.address_line2||'Excellent photography by the water.'}`},
+    {match:'tourism.attraction',type:'viewpoint', desc:f=>`${f.properties?.name} — ${f.properties?.address_line2||'A notable local attraction.'}`},
+  ];
+
+  const timings = [0.2, 0.38, 0.58, 0.78];
+
+  for(const {match,type,desc} of TYPE_MAP){
+    if(hl.length>=4) break;
+    const f = nearbyPOIs.find(f=>{
+      const cats=(f.properties?.categories||[]).join(' ');
+      const name=f.properties?.name;
+      return cats.includes(match) && name && !used.has(name);
+    });
+    if(f){
+      used.add(f.properties.name);
+      hl.push({type, name:f.properties.name, description:desc(f), timing:fmt(dep+durationH*timings[hl.length])});
+    }
+  }
+
+  // Fallbacks
+  const fallbacks = [
+    {type:'viewpoint',   name:'Valley Overlook',  description:'Wide open views across the countryside.',    timing:fmt(dep+durationH*0.25)},
+    {type:'food',        name:'Village Tea Room',  description:'Traditional stop for tea and scones.',       timing:fmt(dep+durationH*0.45)},
+    {type:'culture',     name:'Historic Church',   description:'Medieval parish church, worth a look.',      timing:fmt(dep+durationH*0.65)},
+    {type:'photography', name:'Sunset Viewpoint',  description:'Elevated spot with excellent evening light.',timing:fmt(dep+durationH*0.82)},
+  ];
+  while(hl.length<3) hl.push(fallbacks[hl.length]);
+
+  return hl;
+}
+
+function buildSchedule(hl, depTime, durationH, originName) {
+  const dep = parseInt(depTime)+parseInt(depTime.split(':')[1])/60;
+  const fmt = h => { const hr=Math.floor(h),mn=Math.round((h%1)*60); return String(hr).padStart(2,'0')+':'+String(mn).padStart(2,'0'); };
+  const TYPE_ICON  = {viewpoint:'👁',food:'☕',culture:'🏛',photography:'📷',start:'🟢',end:'🏁'};
+  const TYPE_COLOR = {viewpoint:'#60a5fa',food:'#fb923c',culture:'#f472b6',photography:'#facc15',start:'#4ade80',end:'#f472b6'};
+  const rows = [{time:depTime,event:'Depart '+originName,icon:'🟢',color:'#4ade80',note:'Head out on the scenic B-road.'}];
+  hl.forEach(h=>{
+    rows.push({time:h.timing,event:h.name,icon:TYPE_ICON[h.type]||'◆',color:TYPE_COLOR[h.type]||'#a78bfa',note:h.description});
+  });
+  rows.push({time:fmt(dep+durationH),event:'Return / Arrive',icon:'🏁',color:'#f472b6',note:'Journey complete.'});
+  return rows;
+}
+
+// ─── MAP RENDERING ────────────────────────────────────────────────────────────
+function renderMap(geometry, waypoints) {
+  const coords = geometry.coordinates;
+  const step = Math.max(1,Math.floor(coords.length/10));
+  const sampled = coords.filter((_,i)=>i%step===0).slice(0,12);
+  const lons=sampled.map(c=>c[0]), lats=sampled.map(c=>c[1]);
+  const minLon=Math.min(...lons),maxLon=Math.max(...lons);
+  const minLat=Math.min(...lats),maxLat=Math.max(...lats);
+  const nx=c=>maxLon===minLon?50:Math.round(20+((c[0]-minLon)/(maxLon-minLon))*760);
+  const ny=c=>maxLat===minLat?50:Math.round(20+((maxLat-c[1])/(maxLat-minLat))*360);
+
+  const d=sampled.map((c,i)=>`${i===0?'M':'L'} ${nx(c)} ${ny(c)}`).join(' ');
+  document.getElementById('r-shadow').setAttribute('d',d);
+  document.getElementById('r-path').setAttribute('d',d);
+
+  // Waypoint markers
+  const g=document.getElementById('r-pts'); g.innerHTML='';
+  waypoints.slice(1,-1).forEach(wp=>{
+    const px=nx([wp.lon,wp.lat]),py=ny([wp.lon,wp.lat]);
+    g.innerHTML+=`<circle cx="${px}" cy="${py}" r="5" fill="#0a1628" stroke="#facc15" stroke-width="2"/>
+      <circle cx="${px}" cy="${py}" r="2" fill="#facc15"/>
+      <text x="${px}" y="${py-10}" text-anchor="middle" fill="#facc15" font-size="8" font-family="DM Sans,sans-serif">${wp.name?.split(' ')[0]||''}</text>`;
+  });
+
+  const s=sampled[0], e=sampled[sampled.length-1];
+  document.getElementById('dot-s').setAttribute('cx',nx(s)); document.getElementById('dot-s').setAttribute('cy',ny(s));
+  document.getElementById('dot-e').setAttribute('cx',nx(e)); document.getElementById('dot-e').setAttribute('cy',ny(e));
+}
+
+// ─── RENDER RESULT ────────────────────────────────────────────────────────────
+function renderResult(route) {
+  const {name,tagline,genome,genomeDetails,overall,distKm,durationH,highlights,schedule,waypoints,nearbyPOIs,raw,osrmData,originGeo,destGeo,alternatives} = route;
+
+  document.getElementById('r-badge').textContent = S.mode==='adventure'?S.duration+'h Adventure':'Scenic Route';
+  document.getElementById('r-name').textContent = name;
+  document.getElementById('r-tagline').textContent = tagline;
+  document.getElementById('r-dur').textContent = Math.round(durationH*10)/10+' hours';
+  document.getElementById('r-dist').textContent = Math.round(distKm)+' km';
+  document.getElementById('r-score').textContent = overall;
+  document.getElementById('r-extra').textContent = `${raw.curviness}% curviness · ${raw.poiCount} nearby places`;
+
+  // Score ring
+  const circ=2*Math.PI*27;
+  document.getElementById('score-arc').setAttribute('stroke-dasharray',`${(overall/100)*circ} ${circ-(overall/100)*circ}`);
+  document.getElementById('score-num').textContent=overall;
+  document.getElementById('score-sub').textContent=`${raw.peaks} peaks · ${raw.water} water · ${raw.heritage} heritage · ${raw.food} food stops`;
+
+  // Map
+  renderMap(osrmData.geometry, [{lat:originGeo.lat,lon:originGeo.lon,name:originGeo.name},...waypoints,{lat:(destGeo||originGeo).lat,lon:(destGeo||originGeo).lon}]);
+
+  // POI strip
+  const strip=document.getElementById('poi-strip');
+  strip.innerHTML='';
+  const ICONS={peak:'🏔',water:'💧',heritage:'🏰',food:'🍺',viewpoint:'👁',default:'📍'};
+  nearbyPOIs.filter(f=>f.properties?.name).slice(0,12).forEach(f=>{
+    const cats=(f.properties?.categories||[]).join(' ');
+    const type=cats.includes('mountain')?'peak':cats.includes('water')?'water':cats.includes('heritage')?'heritage':cats.includes('catering')?'food':cats.includes('tourism')?'viewpoint':'default';
+    strip.innerHTML+=`<div class="poi-pill"><span>${ICONS[type]}</span>${f.properties.name}</div>`;
+  });
+
+  // Genome
+  renderGenome(genome, genomeDetails);
+
+  // Highlights
+  renderHighlights(highlights);
+
+  // Schedule
+  renderSchedule(schedule);
+
+  // Alternatives
+  renderAlts(alternatives, route);
+
+  setTab('genome');
+}
+
+function renderGenome(genome, details) {
+  S.activeGenome=null;
+  document.getElementById('gdetail').classList.remove('open');
+  const c=document.getElementById('genome-bars'); c.innerHTML='';
+  GENOME_META.forEach(cat=>{
+    const v=Math.round(genome[cat.key])||0;
+    const d=document.createElement('div'); d.className='gbar'; d.id='gb-'+cat.key;
+    d.innerHTML=`<div class="gbar-top"><span class="gbar-label">${cat.icon} ${cat.label}</span><span class="gbar-val" style="color:${cat.color}">${v}</span></div>
+      <div class="gbar-track"><div class="gbar-fill" style="width:${v}%;background:${cat.color};box-shadow:0 0 8px ${cat.color}80"></div></div>`;
+    d.onclick=()=>toggleGenomeDetail(cat,details);
+    c.appendChild(d);
+  });
+}
+
+function toggleGenomeDetail(cat, details) {
+  const det=document.getElementById('gdetail');
+  if(S.activeGenome===cat.key){
+    S.activeGenome=null; det.classList.remove('open');
+    document.querySelectorAll('.gbar').forEach(b=>b.classList.remove('active')); return;
+  }
+  S.activeGenome=cat.key;
+  document.querySelectorAll('.gbar').forEach(b=>b.classList.remove('active'));
+  document.getElementById('gb-'+cat.key)?.classList.add('active');
+  const sub=details[cat.key];
+  if(!sub){det.classList.remove('open');return;}
+  det.innerHTML=`<div class="gdetail-title">${cat.label} — how this was scored</div>`+
+    Object.entries(sub).map(([k,v])=>`<div class="sub-row">
+      <div class="sub-top"><span class="sub-name">${k}</span><span class="sub-val" style="color:${cat.color}">${Math.round(v)}</span></div>
+      <div class="sub-track"><div class="sub-fill" style="width:${Math.round(v)}%;background:${cat.color}"></div></div>
+    </div>`).join('');
+  det.classList.add('open');
+}
+
+function renderHighlights(highlights) {
+  const ICON={viewpoint:'👁',food:'☕',culture:'🏛',photography:'📷'};
+  const CLR={viewpoint:'#60a5fa',food:'#fb923c',culture:'#f472b6',photography:'#facc15'};
+  const l=document.getElementById('hl-list'); l.innerHTML='';
+  highlights.forEach(h=>{
+    const d=document.createElement('div'); d.className='hl-card';
+    d.innerHTML=`<div class="hl-time-row"><span>${ICON[h.type]||'◆'}</span><span class="hl-time" style="color:${CLR[h.type]||'#a78bfa'}">${h.timing}</span></div>
+      <div class="hl-name">${h.name}</div><div class="hl-desc">${h.description}</div>`;
+    d.onclick=()=>d.classList.toggle('open');
+    l.appendChild(d);
+  });
+}
+
+function renderSchedule(sched) {
+  const l=document.getElementById('sched-list'); l.innerHTML='';
+  sched.forEach(s=>{
+    const d=document.createElement('div'); d.className='sched-row';
+    d.innerHTML=`<div class="sched-time" style="color:${s.color}">${s.time}</div>
+      <div style="font-size:13px">${s.icon}</div>
+      <div><div class="sched-event">${s.event}</div><div class="sched-note">${s.note}</div></div>`;
+    l.appendChild(d);
+  });
+}
+
+function renderAlts(alts, currentRoute) {
+  const l=document.getElementById('alts-list'); l.innerHTML='';
+  alts.forEach((alt,i)=>{
+    const d=document.createElement('div');
+    d.className='alt-card'+(i===0?' selected':'');
+    d.innerHTML=`<div class="alt-top"><div class="alt-name">${alt.name}</div><div class="alt-badge">${alt.badge}</div></div>
+      <div class="alt-tagline">${alt.tagline}</div>
+      <div class="alt-stats">
+        <span class="alt-stat">⭐ ${alt.score}/100</span>
+        <span class="alt-stat">📍 ${Math.round(alt.distKm)}km</span>
+        <span class="alt-stat">🛣 ${alt.raw?.curviness||0}% curviness</span>
+      </div>`;
+    d.onclick=()=>{
+      document.querySelectorAll('.alt-card').forEach(x=>x.classList.remove('selected'));
+      d.classList.add('selected');
+      S.route={...currentRoute,...alt,osrmData:alt.osrmData};
+      renderMap(alt.osrmData.geometry, alt.waypoints);
+      renderGenome(alt.genome,alt.genomeDetails);
+    };
+    l.appendChild(d);
+  });
+}
+
+// ─── MASTER GENERATOR ─────────────────────────────────────────────────────────
+async function generateRoute() {
+  const originVal = document.getElementById('origin').value.trim();
+  const destVal   = document.getElementById('dest').value.trim();
+  const depTime   = document.getElementById('dep-time').value||'09:00';
+
+  advStep(0);
+  let originGeo, destGeo=null;
+  try { originGeo=await geocode(originVal); }
+  catch(e){ throw new Error('Could not find "'+originVal+'" — '+e.message); }
+  if(S.mode==='destination'&&destVal){
+    try { destGeo=await geocode(destVal); }
+    catch(e){ throw new Error('Could not find "'+destVal+'" — '+e.message); }
+  }
+
+  advStep(1);
+  // Build generous bounding box
+  const endGeo = destGeo||originGeo;
+  const directKm = haversine(originGeo.lat,originGeo.lon,endGeo.lat,endGeo.lon);
+  // Pad by 40% of direct distance or minimum 30km, whichever larger
+  const padDeg = Math.max(0.3, (directKm*0.4)/111);
+  const minLat=Math.min(originGeo.lat,endGeo.lat)-padDeg;
+  const maxLat=Math.max(originGeo.lat,endGeo.lat)+padDeg;
+  const minLon=Math.min(originGeo.lon,endGeo.lon)-padDeg*1.5;
+  const maxLon=Math.max(originGeo.lon,endGeo.lon)+padDeg*1.5;
+
+  let allPOIs=[];
+  try { allPOIs=await fetchRegionPOIs(minLat,minLon,maxLat,maxLon); }
+  catch(e){ throw new Error('POI fetch failed — '+e.message); }
+
+  advStep(2);
+
+  // Build heatmap and find waypoints
+  const W=6,H=6;
+  let heatmap = buildHeatmap(allPOIs,minLat,minLon,maxLat,maxLon,W,H);
+  heatmap = applyMoodWeights(heatmap,S.mood);
+
+  // Generate 3 candidate route sets with different detour budgets
+  const candidateDefs = destGeo
+    ? [{label:'Direct Scenic', detour:1.3},{label:'Balanced',detour:1.6},{label:'Full Adventure',detour:2.2}]
+    : [{label:'Main Loop',detour:1.0},{label:'Extended',detour:1.3},{label:'Epic',detour:1.6}];
+
+  const candidates = [];
+  for(const def of candidateDefs){
+    let waypointObjs;
+    if(destGeo){
+      waypointObjs = findBestWaypoints(heatmap,originGeo,destGeo,W,H,def.detour);
+    } else {
+      waypointObjs = buildAdventureWaypoints(originGeo,S.mood,S.duration);
+    }
+
+    const wpCoords = [[originGeo.lat,originGeo.lon],...waypointObjs.map(w=>[w.lat,w.lon])];
+    if(destGeo) wpCoords.push([destGeo.lat,destGeo.lon]);
+    else wpCoords.push([originGeo.lat,originGeo.lon]);
+
+    try {
+      const osrm = await osrmRoute(wpCoords);
+      const nearby = allPOIs.filter(f=>{
+        const lat=f.geometry?.coordinates?.[1];
+        const lon=f.geometry?.coordinates?.[0];
+        if(!lat||!lon) return false;
+        return poiDensityAlongRoute(osrm.geometry.coordinates,[f])>0 || haversine(lat,lon,(originGeo.lat+endGeo.lat)/2,(originGeo.lon+endGeo.lon)/2)<directKm*0.8;
+      });
+
+      const {genome,details:genomeDetails,raw} = calcGenome(osrm,nearby,S.mood);
+      const overall = Math.round(Object.values(genome).reduce((a,b)=>a+b,0)/8);
+      const distKm  = osrm.distance/1000;
+      const durH    = destGeo ? osrm.duration/3600 : S.duration;
+      const {name,tagline} = nameRoute(raw,genome,originGeo.name,destGeo?.name);
+      const highlights = buildHighlights(nearby,waypointObjs,depTime,durH);
+      const schedule   = buildSchedule(highlights,depTime,durH,originGeo.name);
+
+      candidates.push({
+        name, tagline, genome, genomeDetails, overall, distKm,
+        durationH:durH, raw, osrmData:osrm,
+        waypoints:waypointObjs, nearbyPOIs:nearby,
+        highlights, schedule, originGeo, destGeo,
+        badge:def.label,
+        label:def.label,
+      });
+    } catch(e){
+      // Skip failed candidate
+    }
+  }
+
+  if(!candidates.length) throw new Error('Could not build any routes — try different locations');
+
+  advStep(3);
+
+  // Pick best candidate by overall score
+  candidates.sort((a,b)=>b.overall-a.overall);
+  const best = candidates[0];
+
+  // Format alternatives (the other candidates)
+  const alternatives = candidates.map((c,i)=>({...c, badge:candidateDefs[i]?.label||'Option '+(i+1)}));
+
+  advStep(4);
+
+  return {...best, alternatives};
+}
+
+// ─── HANDLE GENERATE ──────────────────────────────────────────────────────────
+async function handleGenerate() {
+  if(!document.getElementById('origin').value.trim()) return;
+  document.getElementById('err').style.display='none';
+  document.querySelectorAll('.step-row').forEach(r=>r.classList.remove('active','done'));
+  show('loading');
+  try {
+    const route = await generateRoute();
+    S.route=route; S.allRoutes=route.alternatives||[];
+    renderResult(route);
+    show('result');
+  } catch(e) {
+    document.getElementById('err').textContent=e.message;
+    document.getElementById('err').style.display='block';
+    show('configure');
+  }
+}
+
+// ─── EXPORT ───────────────────────────────────────────────────────────────────
+function exportGoogle() {
+  const r=S.route; if(!r) return;
+  const wps=r.waypoints.map(w=>w.lat+','+w.lon).join('/');
+  const end=r.destGeo||r.originGeo;
+  window.open(`https://www.google.com/maps/dir/${r.originGeo.lat},${r.originGeo.lon}/${wps}/${end.lat},${end.lon}`,'_blank');
+}
+function exportApple() {
+  const r=S.route; if(!r) return;
+  const end=r.destGeo||r.originGeo;
+  window.open(`https://maps.apple.com/?saddr=${r.originGeo.lat},${r.originGeo.lon}&daddr=${end.lat},${end.lon}&dirflg=d`,'_blank');
+}
+function exportGPX() {
+  const r=S.route; if(!r) return;
+  const allWP=[{lat:r.originGeo.lat,lon:r.originGeo.lon,name:r.originGeo.name},...r.waypoints,{lat:(r.destGeo||r.originGeo).lat,lon:(r.destGeo||r.originGeo).lon,name:(r.destGeo||r.originGeo).name}];
+  const pts=allWP.map(w=>`  <wpt lat="${w.lat}" lon="${w.lon}"><name>${w.name||'Waypoint'}</name></wpt>`).join('\n');
+  const gpx=`<?xml version="1.0" encoding="UTF-8"?>\n<gpx version="1.1" creator="Byway">\n<metadata><name>${r.name}</name></metadata>\n${pts}\n</gpx>`;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([gpx],{type:'application/gpx+xml'}));
+  a.download=r.name.replace(/\s+/g,'-').toLowerCase()+'.gpx';
+  a.click();
+}
+</script>
+</body>
+</html>
