@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"/><title>Byway — Region Query Test</title>
+<style>
+  body { background:#111; color:#eee; font-family:monospace; padding:32px; max-width:900px; }
+  button { padding:12px 24px; background:#238636; color:#fff; border:none; border-radius:6px; font-size:14px; cursor:pointer; margin-bottom:8px; margin-right:8px; }
+  .row { padding:12px 16px; background:#1a1a2e; border-radius:8px; margin-bottom:8px; }
+  .label { font-size:12px; color:#888; margin-bottom:6px; }
+  .val { font-size:13px; color:#3fb950; word-break:break-word; }
+  .fail { color:#f85149; }
+  .grid { display:grid; gap:3px; margin-top:12px; }
+  .cell { height:64px; border-radius:4px; display:flex; align-items:center; justify-content:center; font-size:9px; text-align:center; padding:3px; line-height:1.4; }
+</style>
+</head>
+<body>
+<h2>Byway — Region Grid Test</h2>
+<p style="color:#666;font-size:13px;margin-bottom:20px">Single large bounding box query, then scores a 4x4 grid client-side. Tests the foundation of the segment scoring engine.</p>
+<button onclick="runTest('edinburgh')">Edinburgh to Inverness</button>
+<button onclick="runTest('lakes')">Lake District</button>
+<button onclick="runTest('cotswolds')">Cotswolds</button>
+<div id="out"></div>
+
+<script>
+const REGIONS = {
+  edinburgh: { name:'Edinburgh to Inverness', lat1:55.953,lon1:-3.188, lat2:57.477,lon2:-4.224, pad:0.6 },
+  lakes:     { name:'Lake District',          lat1:54.2,  lon1:-3.5,   lat2:54.7, lon2:-2.7,   pad:0.1 },
+  cotswolds: { name:'Cotswolds',              lat1:51.7,  lon1:-2.1,   lat2:52.1, lon2:-1.5,   pad:0.1 },
+};
+
+function log(label, val, ok=true) {
+  document.getElementById('out').insertAdjacentHTML('beforeend',
+    `<div class="row"><div class="label">${label}</div><div class="val ${ok?'':'fail'}">${val}</div></div>`);
+}
+
+async function queryRegion(minLat,minLon,maxLat,maxLon) {
+  const b = `${minLat},${minLon},${maxLat},${maxLon}`;
+  const q = `[out:json][timeout:35];(
+    node["tourism"="viewpoint"](${b});
+    node["natural"="peak"]["name"](${b});
+    node["natural"="waterfall"]["name"](${b});
+    node["historic"="castle"]["name"](${b});
+    node["historic"="ruins"]["name"](${b});
+    node["amenity"="pub"]["name"](${b});
+    node["amenity"="cafe"]["name"](${b});
+    node["amenity"="restaurant"]["name"](${b});
+    way["natural"="water"]["name"](${b});
+    way["natural"="coastline"](${b});
+    way["highway"~"^(secondary|unclassified|tertiary)$"]["name"](${b});
+  );out center 300;`;
+  const r = await fetch('https://overpass.kumi.systems/api/interpreter',{
+    method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+    body:'data='+encodeURIComponent(q)
+  });
+  if(!r.ok) throw new Error('HTTP '+r.status);
+  const d = await r.json();
+  return d.elements||[];
+}
+
+function scoreGrid(els, minLat,minLon,maxLat,maxLon, W=4,H=4) {
+  const cw=(maxLon-minLon)/W, ch=(maxLat-minLat)/H;
+  const grid=Array.from({length:W*H},(_,i)=>({
+    row:Math.floor(i/W), col:i%W,
+    views:0,peaks:0,water:0,castles:0,food:0,coast:0,roads:0,score:0,names:[]
+  }));
+  for(const el of els) {
+    const lat=el.lat||el.center?.lat, lon=el.lon||el.center?.lon;
+    if(!lat||!lon) continue;
+    const col=Math.floor((lon-minLon)/cw), row=Math.floor((lat-minLat)/ch);
+    if(col<0||col>=W||row<0||row>=H) continue;
+    const c=grid[row*W+col];
+    const t=el.tags||{};
+    if(t.tourism==='viewpoint') c.views++;
+    if(t.natural==='peak') c.peaks++;
+    if(t.natural==='waterfall'||t.natural==='water') c.water++;
+    if(t.historic==='castle'||t.historic==='ruins') c.castles++;
+    if(t.amenity) c.food++;
+    if(t.natural==='coastline') c.coast++;
+    if(t.highway) c.roads++;
+    if(t.name) c.names.push(t.name);
+  }
+  for(const c of grid) {
+    c.score=Math.min(100, c.views*10+c.peaks*8+c.water*7+c.castles*12+c.food*3+c.coast*6+c.roads*1);
+  }
+  return grid;
+}
+
+function renderGrid(grid,W,H) {
+  const max=Math.max(...grid.map(c=>c.score),1);
+  let html=`<div class="grid" style="grid-template-columns:repeat(${W},1fr)">`;
+  for(let row=H-1;row>=0;row--) {
+    for(let col=0;col<W;col++) {
+      const c=grid[row*W+col];
+      const t=c.score/max;
+      const bg=`rgb(${Math.round(20+t*40)},${Math.round(80+t*170)},${Math.round(40+t*30)})`;
+      const top3=c.names.slice(0,2).join(', ')||'—';
+      html+=`<div class="cell" style="background:${bg};color:${t>0.5?'#000':'#aaa'}">
+        <div><b>${c.score}</b><br/>👁${c.views} 🏔${c.peaks}<br/>💧${c.water} 🏰${c.castles}<br/>${top3}</div>
+      </div>`;
+    }
+  }
+  return html+'</div>';
+}
+
+async function runTest(key) {
+  document.getElementById('out').innerHTML='';
+  const reg=REGIONS[key];
+  log('Region', reg.name);
+
+  const pad=reg.pad;
+  const minLat=Math.min(reg.lat1,reg.lat2)-pad;
+  const maxLat=Math.max(reg.lat1,reg.lat2)+pad;
+  const minLon=Math.min(reg.lon1,reg.lon2)-pad;
+  const maxLon=Math.max(reg.lon1,reg.lon2)+pad;
+  log('Bounding box',`${minLat.toFixed(2)},${minLon.toFixed(2)} → ${maxLat.toFixed(2)},${maxLon.toFixed(2)}`);
+
+  try {
+    const t0=Date.now();
+    const els=await queryRegion(minLat,minLon,maxLat,maxLon);
+    log('Query time', ((Date.now()-t0)/1000).toFixed(1)+'s');
+    log('Total elements', els.length);
+
+    const counts={};
+    for(const el of els){const t=el.tags||{};const k=t.tourism||t.natural||t.historic||t.amenity||t.highway||'?';counts[k]=(counts[k]||0)+1;}
+    log('By type', Object.entries(counts).map(([k,v])=>`${k}:${v}`).join(' | '));
+
+    const named=els.filter(e=>e.tags?.name).slice(0,12).map(e=>e.tags.name);
+    log('Sample names', named.join(', ')||'none');
+
+    const grid=scoreGrid(els,minLon,minLat,maxLon,maxLat,4,4);
+
+    // Note: scoreGrid uses (minLon,minLat,maxLon,maxLat) — let me re-check
+    const top=[...grid].sort((a,b)=>b.score-a.score).slice(0,3);
+    log('Top cells', top.map(c=>`[r${c.row}c${c.col}] ${c.score}pts: ${c.names.slice(0,3).join(', ')}`).join(' | '));
+
+    document.getElementById('out').insertAdjacentHTML('beforeend',
+      `<div class="row"><div class="label">4x4 Score Grid (N at top, brighter=more scenic)</div>${renderGrid(grid,4,4)}</div>`);
+
+  } catch(e) {
+    log('FAILED', e.message, false);
+  }
+}
+</script>
+</body>
+</html>
