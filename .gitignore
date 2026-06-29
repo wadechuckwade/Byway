@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+.elevation_cache.json
+.google_places_usage_log.json
+.landcover_cache.json
+byway_backup_before_chatgpt_edits/
+data/
